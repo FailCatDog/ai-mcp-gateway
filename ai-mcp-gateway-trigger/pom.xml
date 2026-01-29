@@ -40,6 +40,10 @@
             <groupId>cn.hgy.ai</groupId>
             <artifactId>ai-mcp-gateway-domain</artifactId>
         </dependency>
+        <dependency>
+            <groupId>cn.hgy.ai</groupId>
+            <artifactId>ai-mcp-gateway-case</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
