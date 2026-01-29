@@ -1,0 +1,45 @@
+package cn.hgy.ai.domain.session.service.message;
+
+import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
+import cn.hgy.ai.domain.session.model.valobj.enums.SessionMessageHandlerMethodEnum;
+import cn.hgy.ai.domain.session.service.ISessionMessageService;
+import cn.hgy.ai.domain.session.service.management.handler.IRequestHandler;
+import cn.hgy.ai.types.enums.ResponseCode;
+import cn.hgy.ai.types.exception.AppException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+
+/**
+ * @Author: 黄光宇
+ * @CreateTime: 2026-01-30
+ * @Description:
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class SessionMessageServiceImpl implements ISessionMessageService {
+
+    private final Map<String, IRequestHandler> requestHandlerMap;
+
+    @Override
+    public McpSchemaVO.JSONRPCResponse processHandlerMessage(McpSchemaVO.JSONRPCRequest message) {
+
+        String method = message.method();
+
+        SessionMessageHandlerMethodEnum sessionMessageHandlerMethodEnum = SessionMessageHandlerMethodEnum.getByMethod(method);
+        if (null == sessionMessageHandlerMethodEnum) {
+            throw new AppException(ResponseCode.METHOD_NOT_FOUND.getCode(), ResponseCode.METHOD_NOT_FOUND.getInfo());
+        }
+
+        String handlerName = sessionMessageHandlerMethodEnum.getHandlerName();
+        IRequestHandler requestHandler = requestHandlerMap.get(handlerName);
+        if (null == requestHandler) {
+            throw new AppException(ResponseCode.METHOD_NOT_FOUND.getCode(), ResponseCode.METHOD_NOT_FOUND.getInfo());
+        }
+
+        return requestHandler.handle(message);
+    }
+}

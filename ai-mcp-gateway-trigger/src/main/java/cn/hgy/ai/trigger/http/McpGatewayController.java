@@ -9,9 +9,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 /**
  * @Author: 黄光宇
@@ -43,6 +47,21 @@ public class McpGatewayController implements IMcpGatewayService {
         } catch (Exception e) {
             log.info("建立 MCP 连接失败 {}", gatewayId);
             throw e;
+        }
+    }
+
+    @PostMapping(value = "{gatewayId}/mcp/sse", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Override
+    public Mono<ResponseEntity<Object>> handleMessage(@PathVariable("gatewayId") String getawayId,
+                                                      @RequestParam String sessionId,
+                                                      @RequestBody String messageBody) {
+        try {
+
+            log.info("处理 MCP SSE 消息, gatewayId:{} sessionId:{} messageBody:{}", getawayId, sessionId, messageBody);
+
+            return Mono.just(ResponseEntity.ok(Map.of("status", "sent via sse")));
+        } catch (Exception e) {
+            return Mono.empty();
         }
     }
 }

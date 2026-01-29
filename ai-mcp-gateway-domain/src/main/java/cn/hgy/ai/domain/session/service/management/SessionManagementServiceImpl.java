@@ -1,4 +1,4 @@
-package cn.hgy.ai.domain.session.service.impl;
+package cn.hgy.ai.domain.session.service.management;
 
 import cn.hgy.ai.domain.session.model.valobj.SessionConfigVO;
 import cn.hgy.ai.domain.session.service.ISessionManagementService;
@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -43,7 +42,7 @@ public class SessionManagementServiceImpl implements ISessionManagementService {
 
         Sinks.Many<ServerSentEvent<String>> sink = Sinks.many().multicast().onBackpressureBuffer();
 
-        String messageEndpoint = "/" + gatewayId +"/mcp/message?sessionId=" + sessionId;
+        String messageEndpoint = "/api-gateway/" + gatewayId +"/mcp/sse?sessionId=" + sessionId;
         sink.tryEmitNext(ServerSentEvent.<String>builder()
                 .event("endpoint")
                 .data(messageEndpoint)

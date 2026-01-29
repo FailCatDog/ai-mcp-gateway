@@ -38,6 +38,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-ai.vsersion>1.0.0</spring-ai.vsersion>
     </properties>
 
     <developers>
@@ -128,6 +129,14 @@
                 <groupId>cn.bugstack.wrench</groupId>
                 <artifactId>xfg-wrench-starter-design-framework</artifactId>
                 <version>3.3.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.vsersion}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- 工程模块 -->

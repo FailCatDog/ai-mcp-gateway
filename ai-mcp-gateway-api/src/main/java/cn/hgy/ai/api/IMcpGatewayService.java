@@ -1,7 +1,9 @@
 package cn.hgy.ai.api;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * @Author: 黄光宇
@@ -11,4 +13,6 @@ import reactor.core.publisher.Flux;
 public interface IMcpGatewayService {
 
     Flux<ServerSentEvent<String>> establishSSEConnection(String gatewayId) throws Exception;
+
+    Mono<ResponseEntity<Object>> handleMessage(String getawayId, String sessionId, String messageBody);
 }
