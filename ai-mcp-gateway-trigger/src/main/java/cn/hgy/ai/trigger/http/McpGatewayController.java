@@ -2,9 +2,13 @@ package cn.hgy.ai.trigger.http;
 
 import cn.hgy.ai.api.IMcpGatewayService;
 import cn.hgy.ai.cases.mcp.IMcpSessionService;
+import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
+import cn.hgy.ai.domain.session.model.valobj.SessionConfigVO;
 import cn.hgy.ai.domain.session.service.ISessionManagementService;
+import cn.hgy.ai.domain.session.service.ISessionMessageService;
 import cn.hgy.ai.types.enums.ResponseCode;
 import cn.hgy.ai.types.exception.AppException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
 
 /**
  * @Author: 黄光宇
@@ -30,6 +33,9 @@ import java.util.Map;
 public class McpGatewayController implements IMcpGatewayService {
 
     private final IMcpSessionService sessionService;
+    private final ISessionMessageService sessionMessageService;
+    private final ISessionManagementService sessionManagementService;
+    private final ObjectMapper objectMapper;
 
     @GetMapping(value = "{gatewayId}/mcp/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Override
@@ -59,9 +65,29 @@ public class McpGatewayController implements IMcpGatewayService {
 
             log.info("处理 MCP SSE 消息, gatewayId:{} sessionId:{} messageBody:{}", getawayId, sessionId, messageBody);
 
-            return Mono.just(ResponseEntity.ok(Map.of("status", "sent via sse")));
+            SessionConfigVO session = sessionManagementService.getSession(sessionId);
+            if (null == session) {
+                return Mono.just(ResponseEntity.notFound().build());
+            }
+
+            McpSchemaVO.JSONRPCMessage jsonrpcMessage = McpSchemaVO.deserializeJsonMessage(messageBody);
+            log.info("序列化消息 {}", jsonrpcMessage.jsonrpc());
+
+            // todo 暂时直接调用domain后续调整
+            McpSchemaVO.JSONRPCResponse jsonrpcResponse = sessionMessageService.processHandlerMessage(jsonrpcMessage);
+
+            if (null != jsonrpcResponse) {
+                String responseJson = objectMapper.writeValueAsString(jsonrpcMessage);
+
+                session.getSink().tryEmitNext(ServerSentEvent.<String>builder()
+                        .event("message")
+                        .data(responseJson)
+                        .build());
+            }
+
+            return Mono.just(ResponseEntity.accepted().build());
         } catch (Exception e) {
-            return Mono.empty();
+            return Mono.just(ResponseEntity.internalServerError().build());
         }
     }
 }

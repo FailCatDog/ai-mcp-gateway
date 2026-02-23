@@ -1,7 +1,7 @@
-package cn.hgy.ai.domain.session.service.management.handler.impl;
+package cn.hgy.ai.domain.session.service.message.handler.impl;
 
 import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
-import cn.hgy.ai.domain.session.service.management.handler.IRequestHandler;
+import cn.hgy.ai.domain.session.service.message.handler.IRequestHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ public class InitializeHandler implements IRequestHandler {
                         "resources", Map.of()
                 ),
                 "serverInfo", Map.of(
-                        "name", "MCP Weather Proxy Server",
+                        "name", "MCP Word Util Proxy Server",
                         "version", "1.0.0"
                 )
         ), null);

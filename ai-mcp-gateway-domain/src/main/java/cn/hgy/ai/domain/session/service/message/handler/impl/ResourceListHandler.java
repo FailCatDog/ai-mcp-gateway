@@ -1,9 +1,11 @@
-package cn.hgy.ai.domain.session.service.management.handler.impl;
+package cn.hgy.ai.domain.session.service.message.handler.impl;
 
 import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
-import cn.hgy.ai.domain.session.service.management.handler.IRequestHandler;
+import cn.hgy.ai.domain.session.service.message.handler.IRequestHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * @Author: 黄光宇
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class ResourceListHandler implements IRequestHandler {
     @Override
     public McpSchemaVO.JSONRPCResponse handle(McpSchemaVO.JSONRPCRequest message) {
-        return null;
+        return new McpSchemaVO.JSONRPCResponse("2.0", message.id(), Map.of("resources", Map.of("resources", new Object[]{})), null);
     }
 }
 

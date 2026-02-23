@@ -1,4 +1,4 @@
-package cn.hgy.ai.domain.session.service.management.handler;
+package cn.hgy.ai.domain.session.service.message.handler;
 
 import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
 
