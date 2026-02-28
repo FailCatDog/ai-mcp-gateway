@@ -1,10 +1,16 @@
 package cn.hgy.ai.domain.session.service.message.handler.impl;
 
+import cn.hgy.ai.domain.session.adapter.repository.ISessionRepository;
 import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
+import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayConfigVO;
 import cn.hgy.ai.domain.session.service.message.handler.IRequestHandler;
+import com.alibaba.fastjson2.JSON;
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -14,24 +20,36 @@ import java.util.Map;
  */
 @Slf4j
 @Service("initializeHandler")
+@RequiredArgsConstructor
 public class InitializeHandler implements IRequestHandler {
 
+    private final ISessionRepository repository;
+
     @Override
-    public McpSchemaVO.JSONRPCResponse handle(McpSchemaVO.JSONRPCRequest message) {
+    public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest message) {
 
-        log.info("模拟初始化请求");
+        log.info("消息处理服务-initialize gatewayId:{} request.params:{}", gatewayId, JSON.toJSONString(message.params()));
 
-        return new McpSchemaVO.JSONRPCResponse("2.0", message.id(), Map.of(
-                "protocolVersion", "2024-11-05",
-                "capabilities", Map.of(
-                        "tools", Map.of(),
-                        "resources", Map.of()
-                ),
-                "serverInfo", Map.of(
-                        "name", "MCP Word Util Proxy Server",
-                        "version", "1.0.0"
-                )
-        ), null);
+        // 1. 转换参数
+        McpSchemaVO.InitializeRequest initializeRequest = McpSchemaVO.unmarshalFrom(message.params(), new TypeReference<>() {
+        });
 
+        // 2. 查询配置
+        McpGatewayConfigVO mcpGatewayConfigVO = repository.queryMcpGatewayConfigByGatewayId(gatewayId);
+
+        // 3. 组装信息
+        McpSchemaVO.InitializeResult initializeResult = new McpSchemaVO.InitializeResult(initializeRequest.protocolVersion(),
+                new McpSchemaVO.ServerCapabilities(new McpSchemaVO.ServerCapabilities.CompletionCapabilities(),
+                        new HashMap<>(),
+                        new McpSchemaVO.ServerCapabilities.LoggingCapabilities(),
+                        new McpSchemaVO.ServerCapabilities.PromptCapabilities(true),
+                        new McpSchemaVO.ServerCapabilities.ResourceCapabilities(false, true),
+                        new McpSchemaVO.ServerCapabilities.ToolCapabilities(true)),
+                new McpSchemaVO.Implementation(mcpGatewayConfigVO.getToolName(), mcpGatewayConfigVO.getToolVersion()),
+                mcpGatewayConfigVO.getToolDesc()
+        );
+
+        // 4. 返回结果
+        return new McpSchemaVO.JSONRPCResponse(McpSchemaVO.JSONRPC_VERSION, message.id(), initializeResult, null);
     }
 }

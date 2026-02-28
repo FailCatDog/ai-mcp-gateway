@@ -8,5 +8,5 @@ import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
  * @Description:
  */
 public interface IRequestHandler {
-    McpSchemaVO.JSONRPCResponse handle(McpSchemaVO.JSONRPCRequest message);
+    McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest message);
 }

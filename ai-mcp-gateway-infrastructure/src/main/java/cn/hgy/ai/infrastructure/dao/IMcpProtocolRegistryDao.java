@@ -22,4 +22,6 @@ public interface IMcpProtocolRegistryDao {
     McpProtocolRegistryPO queryById(Long id);
 
     List<McpProtocolRegistryPO> queryAll();
+
+    McpProtocolRegistryPO queryMcpProtocolRegistryByGatewayId(String gatewayId);
 }

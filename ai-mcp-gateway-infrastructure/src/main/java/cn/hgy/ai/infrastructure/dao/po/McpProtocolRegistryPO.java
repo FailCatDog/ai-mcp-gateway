@@ -29,6 +29,11 @@ public class McpProtocolRegistryPO {
      * 工具ID
      */
     private Long toolId;
+
+    /**
+     * 工具版本
+     */
+    private String toolVersion;
     /**
      * MCP工具名称（如：JavaSDKMCPClient_getCompanyEmployee）
      */

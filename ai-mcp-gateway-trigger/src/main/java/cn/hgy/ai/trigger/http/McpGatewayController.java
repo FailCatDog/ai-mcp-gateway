@@ -74,7 +74,7 @@ public class McpGatewayController implements IMcpGatewayService {
             log.info("序列化消息 {}", jsonrpcMessage.jsonrpc());
 
             // todo 暂时直接调用domain后续调整
-            McpSchemaVO.JSONRPCResponse jsonrpcResponse = sessionMessageService.processHandlerMessage(jsonrpcMessage);
+            McpSchemaVO.JSONRPCResponse jsonrpcResponse = sessionMessageService.processHandlerMessage(getawayId, jsonrpcMessage);
 
             if (null != jsonrpcResponse) {
                 String responseJson = objectMapper.writeValueAsString(jsonrpcMessage);
