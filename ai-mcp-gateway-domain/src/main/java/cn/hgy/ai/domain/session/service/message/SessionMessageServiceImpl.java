@@ -51,7 +51,7 @@ public class SessionMessageServiceImpl implements ISessionMessageService {
         }
 
         if (message instanceof McpSchemaVO.JSONRPCNotification notification) {
-            log.info("收到即将处理的消息通知 {} {}", notification.method(), JSON.toJSONString(notification.param()));
+            log.info("收到即将处理的消息通知 {} {}", notification.method(), JSON.toJSONString(notification.params()));
         }
 
         return null;

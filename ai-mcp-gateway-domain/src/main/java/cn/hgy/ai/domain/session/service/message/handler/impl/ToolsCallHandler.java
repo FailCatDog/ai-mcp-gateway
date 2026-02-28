@@ -1,8 +1,10 @@
 package cn.hgy.ai.domain.session.service.message.handler.impl;
 
+import cn.hgy.ai.domain.session.adapter.repository.ISessionRepository;
 import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
 import cn.hgy.ai.domain.session.service.message.handler.IRequestHandler;
 import cn.hgy.ai.types.enums.McpErrorCodes;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +17,11 @@ import java.util.Map;
 */
 @Slf4j
 @Service("toolsCalHandler")
+@RequiredArgsConstructor
 public class ToolsCallHandler implements IRequestHandler {
+
+    private final ISessionRepository repository;
+
     @Override
     public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest message) {
 

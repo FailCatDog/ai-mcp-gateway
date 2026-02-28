@@ -1,6 +1,9 @@
 package cn.hgy.ai.domain.session.adapter.repository;
 
 import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayConfigVO;
+import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayToolConfigVO;
+
+import java.util.List;
 
 /**
  * @Author: 黄光宇
@@ -9,4 +12,6 @@ import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayConfigVO;
  */
 public interface ISessionRepository {
     McpGatewayConfigVO queryMcpGatewayConfigByGatewayId(String gatewayId);
+
+    List<McpGatewayToolConfigVO> queryMcpGatewayToolConfigListByGatewayId(String gatewayId);
 }

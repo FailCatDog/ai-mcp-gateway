@@ -21,4 +21,6 @@ public interface IMcpProtocolMappingDao {
     McpProtocolMappingPO queryById(Long id);
 
     List<McpProtocolMappingPO> queryAll();
+
+    List<McpProtocolMappingPO> queryMcpGatewayToolConfigList(McpProtocolMappingPO mcpProtocolMappingPO);
 }
