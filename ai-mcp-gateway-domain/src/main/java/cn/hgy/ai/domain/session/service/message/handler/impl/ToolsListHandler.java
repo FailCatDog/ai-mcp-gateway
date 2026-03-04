@@ -149,4 +149,3 @@ public class ToolsListHandler implements IRequestHandler {
         return property;
     }
 }
-

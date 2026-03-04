@@ -120,7 +120,7 @@ public final class McpSchemaVO {
     }
 
     public sealed interface Request
-            permits InitializeRequest {
+            permits InitializeRequest, CallToolRequest {
 
     }
 
@@ -297,8 +297,29 @@ public final class McpSchemaVO {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Implementation(// @formatter:off
                                  @JsonProperty("name") String name,
-                                 @JsonProperty("version") String version ) {
+                                 @JsonProperty("version") String version) {
     } // @formatter:on
+
+    @JsonInclude(JsonInclude.Include.NON_ABSENT)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ListToolsResult( // @formatter:off
+                                   @JsonProperty("tools") List<Tool> tools,
+                                   @JsonProperty("nextCursor") String nextCursor) {
+    }// @formatter:on
+
+    @JsonInclude(JsonInclude.Include.NON_ABSENT)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Tool( // @formatter:off
+                        @JsonProperty("name") String name,
+                        @JsonProperty("description") String description,
+                        @JsonProperty("inputSchema") JsonSchema inputSchema) {
+
+        public Tool(String name, String description, String schema) {
+            this(name, description, parseSchema(schema));
+        }
+
+    } // @formatter:on
+
 
     @JsonInclude(JsonInclude.Include.NON_ABSENT)
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -322,15 +343,22 @@ public final class McpSchemaVO {
 
     @JsonInclude(JsonInclude.Include.NON_ABSENT)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Tool( // @formatter:off
-                        @JsonProperty("name") String name,
-                        @JsonProperty("description") String description,
-                        @JsonProperty("inputSchema") JsonSchema inputSchema) {
+    public record CallToolRequest(// @formatter:off
+                                  @JsonProperty("name") String name,
+                                  @JsonProperty("arguments") Map<String, Object> arguments) implements Request {
 
-        public Tool(String name, String description, String schema) {
-            this(name, description, parseSchema(schema));
+        public CallToolRequest(String name, String jsonArguments) {
+            this(name, parseJsonArguments(jsonArguments));
         }
 
-    } // @formatter:on
+        private static Map<String, Object> parseJsonArguments(String jsonArguments) {
+            try {
+                return objectMapper.readValue(jsonArguments, MAP_TYPE_REF);
+            }
+            catch (IOException e) {
+                throw new IllegalArgumentException("Invalid arguments: " + jsonArguments, e);
+            }
+        }
+    }// @formatter:off
 
 }
