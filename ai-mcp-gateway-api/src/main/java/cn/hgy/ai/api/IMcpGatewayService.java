@@ -14,5 +14,5 @@ public interface IMcpGatewayService {
 
     Flux<ServerSentEvent<String>> establishSSEConnection(String gatewayId) throws Exception;
 
-    Mono<ResponseEntity<Object>> handleMessage(String getawayId, String sessionId, String messageBody);
+    Mono<ResponseEntity<Void>> handleMessage(String getawayId, String sessionId, String messageBody);
 }

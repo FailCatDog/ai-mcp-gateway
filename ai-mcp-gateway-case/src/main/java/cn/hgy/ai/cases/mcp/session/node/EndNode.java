@@ -19,7 +19,7 @@ import java.time.Duration;
  * @Description:
  */
 @Slf4j
-@Service
+@Service("mcpSessionEndNode")
 public class EndNode extends AbstractMcpSessionSupport {
 
     public EndNode(ISessionManagementService sessionManagementService) {

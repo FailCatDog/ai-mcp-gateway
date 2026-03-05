@@ -1,7 +1,9 @@
 package cn.hgy.ai.trigger.http;
 
 import cn.hgy.ai.api.IMcpGatewayService;
+import cn.hgy.ai.cases.mcp.IMcpMessageService;
 import cn.hgy.ai.cases.mcp.IMcpSessionService;
+import cn.hgy.ai.domain.session.model.entity.HandleMessageCommandEntity;
 import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
 import cn.hgy.ai.domain.session.model.valobj.SessionConfigVO;
 import cn.hgy.ai.domain.session.service.ISessionManagementService;
@@ -32,10 +34,8 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class McpGatewayController implements IMcpGatewayService {
 
-    private final IMcpSessionService sessionService;
-    private final ISessionMessageService sessionMessageService;
-    private final ISessionManagementService sessionManagementService;
-    private final ObjectMapper objectMapper;
+    private final IMcpSessionService mcpSessionService;
+    private final IMcpMessageService mcpMessageService;
 
     @GetMapping(value = "{gatewayId}/mcp/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Override
@@ -49,44 +49,52 @@ public class McpGatewayController implements IMcpGatewayService {
             }
 
 
-            return sessionService.createMcpSession(gatewayId);
+            return mcpSessionService.createMcpSession(gatewayId);
         } catch (Exception e) {
             log.info("建立 MCP 连接失败 {}", gatewayId);
             throw e;
         }
     }
 
+    /**
+     * 处理 sse 消息，响应会话
+     *
+     * @param gatewayId   网关ID
+     * @param sessionId   会话ID
+     * @param messageBody 请求消息
+     * @return 响应结果
+     * <br/>
+     * {
+     * "jsonrpc": "2.0",
+     * "method": "initialize",
+     * "id": "95835f74-0",
+     * "params": {
+     * "protocolVersion": "2024-11-05",
+     * "capabilities": {},
+     * "clientInfo": {
+     * "name": "Java SDK MCP Client",
+     * "version": "1.0.0"
+     * }
+     * }
+     * }
+     */
     @PostMapping(value = "{gatewayId}/mcp/sse", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Override
-    public Mono<ResponseEntity<Object>> handleMessage(@PathVariable("gatewayId") String getawayId,
-                                                      @RequestParam String sessionId,
-                                                      @RequestBody String messageBody) {
+    public Mono<ResponseEntity<Void>> handleMessage(@PathVariable("gatewayId") String gatewayId,
+                                                    @RequestParam("sessionId") String sessionId,
+                                                    @RequestBody String messageBody) {
         try {
-
-            log.info("处理 MCP SSE 消息, gatewayId:{} sessionId:{} messageBody:{}", getawayId, sessionId, messageBody);
-
-            SessionConfigVO session = sessionManagementService.getSession(sessionId);
-            if (null == session) {
-                return Mono.just(ResponseEntity.notFound().build());
+            log.info("处理 MCP SSE 消息，gatewayId:{} sessionId:{} messageBody:{}", gatewayId, sessionId, messageBody);
+            if (StringUtils.isBlank(gatewayId) || StringUtils.isBlank(sessionId)) {
+                log.info("非法参数，gateway、sessionId is null");
+                throw new AppException(ResponseCode.ILLEGAL_PARAMETER.getCode(), ResponseCode.ILLEGAL_PARAMETER.getInfo());
             }
 
-            McpSchemaVO.JSONRPCMessage jsonrpcMessage = McpSchemaVO.deserializeJsonMessage(messageBody);
-            log.info("序列化消息 {}", jsonrpcMessage.jsonrpc());
+            HandleMessageCommandEntity commandEntity = new HandleMessageCommandEntity(gatewayId, sessionId, messageBody);
+            ResponseEntity<Void> responseEntity = mcpMessageService.handleMessage(commandEntity);
 
-            // todo 暂时直接调用domain后续调整
-            McpSchemaVO.JSONRPCResponse jsonrpcResponse = sessionMessageService.processHandlerMessage(getawayId, jsonrpcMessage);
-
-            if (null != jsonrpcResponse) {
-                String responseJson = objectMapper.writeValueAsString(jsonrpcMessage);
-
-                session.getSink().tryEmitNext(ServerSentEvent.<String>builder()
-                        .event("message")
-                        .data(responseJson)
-                        .build());
-            }
-
-            return Mono.just(ResponseEntity.accepted().build());
+            return Mono.just(responseEntity);
         } catch (Exception e) {
+            log.error("处理 MCP SSE 消息失败，gatewayId:{} sessionId:{} messageBody:{}", gatewayId, sessionId, messageBody, e);
             return Mono.just(ResponseEntity.internalServerError().build());
         }
     }

@@ -16,10 +16,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class McpGatewayConfigVO {
 
+    /**
+     * 网关ID
+     */
     private String gatewayId;
+
+    /**
+     * 网关名称
+     */
     private String gatewayName;
-    private Long toolId;
-    private String toolName;
-    private String toolDesc;
-    private String toolVersion;
+
+    /**
+     * 网关描述
+     */
+    private String gatewayDesc;
+
+    /**
+     * 协议版本
+     */
+    private String version;
+
 }

@@ -1,5 +1,6 @@
 package cn.hgy.ai.domain.session.service.message;
 
+import cn.hgy.ai.domain.session.model.entity.HandleMessageCommandEntity;
 import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
 import cn.hgy.ai.domain.session.model.valobj.enums.SessionMessageHandlerMethodEnum;
 import cn.hgy.ai.domain.session.service.ISessionMessageService;
@@ -55,5 +56,10 @@ public class SessionMessageServiceImpl implements ISessionMessageService {
         }
 
         return null;
+    }
+
+    @Override
+    public McpSchemaVO.JSONRPCResponse processHandlerMessage(HandleMessageCommandEntity commandEntity) {
+        return processHandlerMessage(commandEntity.getGatewayId(), commandEntity.getJsonrpcMessage());
     }
 }

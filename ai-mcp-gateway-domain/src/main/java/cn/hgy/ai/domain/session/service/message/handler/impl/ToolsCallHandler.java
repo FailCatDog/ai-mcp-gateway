@@ -3,9 +3,11 @@ package cn.hgy.ai.domain.session.service.message.handler.impl;
 import cn.hgy.ai.domain.session.adapter.port.ISessionPort;
 import cn.hgy.ai.domain.session.adapter.repository.ISessionRepository;
 import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
-import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayProtocolConfigVO;
+import cn.hgy.ai.domain.session.model.valobj.gateway.McpToolProtocolConfigVO;
 import cn.hgy.ai.domain.session.service.message.handler.IRequestHandler;
 import cn.hgy.ai.types.enums.McpErrorCodes;
+import cn.hgy.ai.types.enums.ResponseCode;
+import cn.hgy.ai.types.exception.AppException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,7 @@ import java.util.Map;
 /**
 * @Author: 黄光宇
 * @CreateTime: 2026-01-30
-* @Description:
+* @Description: 执行指定的工具调用
 */
 @Slf4j
 @Service("toolsCalHandler")
@@ -28,56 +30,42 @@ public class ToolsCallHandler implements IRequestHandler {
 
     @Override
     public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest message) {
-
         try {
-            McpGatewayProtocolConfigVO mcpGatewayProtocolConfigVO = repository.queryMcpGatewayProtocolConfig(gatewayId);
+            // 1. 转换参数
+            McpSchemaVO.CallToolRequest callToolRequest =
+                    McpSchemaVO.unmarshalFrom(message.params(), new TypeReference<>() {
+                    });
 
-            McpSchemaVO.CallToolRequest callToolRequest = McpSchemaVO.unmarshalFrom(message.params(), new TypeReference<>() {
-            });
+            Object argumentsObj = callToolRequest.arguments();
+            String toolName = callToolRequest.name();
 
-            Map<String, Object> argumentsObj = callToolRequest.arguments();
+            // 2. 查询协议信息
+            McpToolProtocolConfigVO mcpToolProtocolConfigVO = repository.queryMcpGatewayProtocolConfig(gatewayId, toolName);
+            if (null == mcpToolProtocolConfigVO) {
+                throw new AppException(ResponseCode.METHOD_NOT_FOUND.getCode(), ResponseCode.METHOD_NOT_FOUND.getInfo());
+            }
 
-            // todo 后续详细拆分会使用？
-            String name = callToolRequest.name();
-
-            Object result = port.tollCall(mcpGatewayProtocolConfigVO.getHttpConfig(), argumentsObj);
+            // 2. 调用接口
+            Object result = port.toolCall(mcpToolProtocolConfigVO.getHttpConfig(), argumentsObj);
 
             return new McpSchemaVO.JSONRPCResponse(McpSchemaVO.JSONRPC_VERSION, message.id(), Map.of(
-                    "content", new Object[]{Map.of(
-                            "type", "text",
-                            "text",result
-                    )},
+                    "content", new Object[]{
+                            Map.of(
+                                    "type", "text",
+                                    "text", result
+                            ),
+
+                    },
                     "isError", "false"
             ), null);
-        }catch (Exception e) {
-            return new McpSchemaVO.JSONRPCResponse("2.0", message.id(), null, new  McpSchemaVO.JSONRPCResponse.JSONRPCError(McpErrorCodes.INVALID_PARAMS, e.getMessage(), null));
+
+        } catch (Exception e) {
+            return new McpSchemaVO.JSONRPCResponse(McpSchemaVO.JSONRPC_VERSION,
+                    message.id(),
+                    null,
+                    new McpSchemaVO.JSONRPCResponse.JSONRPCError(McpErrorCodes.INVALID_PARAMS, e.getMessage(), null));
+
         }
-//
-//        Object id = message.id();
-//        Object params = message.params();
-//
-//        if (!(params instanceof Map)) {
-//            return new McpSchemaVO.JSONRPCResponse("2.0", message.id(), null, new  McpSchemaVO.JSONRPCResponse.JSONRPCError(McpErrorCodes.INVALID_PARAMS, "无效的方法或参数", null));
-//        }
-//
-//        Map<String, Object> paramsMap = (Map<String, Object>) params;
-//
-//        String toolName = paramsMap.get("name").toString();
-//        Object argumentsObj = paramsMap.get("arguments");
-//
-//        Map<String, Object> arguments = (Map<String, Object>) argumentsObj;
-//
-//        if ("toUpperCase".equals(toolName)) {
-//            String word = arguments.get("word").toString();
-//
-//            return new McpSchemaVO.JSONRPCResponse("2.0", message.id(), Map.of(
-//                    "content", new Object[]{Map.of(
-//                            "type", "text",
-//                            "text", word.toUpperCase()
-//                    )}
-//            ), null);
-//        }
-//
-//        return null;
+
     }
 }

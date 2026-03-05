@@ -9,14 +9,14 @@ import java.util.Date;
 
 /**
  * @Author: 黄光宇
- * @CreateTime: 2026-02-22
+ * @CreateTime: 2026-03-05
  * @Description: MCP工具注册表
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class McpProtocolRegistryPO {
+public class McpProtocolHttpPO {
     /**
      * 主键ID
      */
@@ -24,28 +24,7 @@ public class McpProtocolRegistryPO {
     /**
      * 所属网关ID
      */
-    private String gatewayId;
-    /**
-     * 工具ID
-     */
-    private Long toolId;
-
-    /**
-     * 工具版本
-     */
-    private String toolVersion;
-    /**
-     * MCP工具名称（如：JavaSDKMCPClient_getCompanyEmployee）
-     */
-    private String toolName;
-    /**
-     * 工具类型：function/resource
-     */
-    private String toolType;
-    /**
-     * 工具描述
-     */
-    private String toolDescription;
+    private Long protocolId;
     /**
      * HTTP接口地址
      */

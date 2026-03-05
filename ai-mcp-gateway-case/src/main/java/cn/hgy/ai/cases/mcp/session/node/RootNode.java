@@ -17,7 +17,7 @@ import reactor.core.publisher.Flux;
  * @Description:
  */
 @Slf4j
-@Service
+@Service("mcpSessionRootNode")
 public class RootNode extends AbstractMcpSessionSupport {
 
     public RootNode(ISessionManagementService sessionManagementService) {

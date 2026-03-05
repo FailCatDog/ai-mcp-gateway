@@ -1,7 +1,7 @@
 package cn.hgy.ai.infrastructure.adapter.port;
 
 import cn.hgy.ai.domain.session.adapter.port.ISessionPort;
-import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayProtocolConfigVO;
+import cn.hgy.ai.domain.session.model.valobj.gateway.McpToolProtocolConfigVO;
 import cn.hgy.ai.infrastructure.gateway.GenericHttpGateway;
 import cn.hgy.ai.types.enums.ResponseCode;
 import cn.hgy.ai.types.exception.AppException;
@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import retrofit2.Call;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,9 +22,8 @@ import java.util.regex.Pattern;
 /**
  * @Author: 黄光宇
  * @CreateTime: 2026-03-04
- * @Description:
+ * @Description: 回话端口服务
  */
-
 @Component
 @RequiredArgsConstructor
 public class SessionPort implements ISessionPort {
@@ -35,7 +33,7 @@ public class SessionPort implements ISessionPort {
     private final ObjectMapper objectMapper;
 
     @Override
-    public Object tollCall(McpGatewayProtocolConfigVO.HTTPConfig httpConfig, Object params) throws Exception {
+    public Object toolCall(McpToolProtocolConfigVO.HTTPConfig httpConfig, Object params) throws IOException {
         // 1. 构建请求头
         String httpHeadersJson = httpConfig.getHttpHeaders();
 

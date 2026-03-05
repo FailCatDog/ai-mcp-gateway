@@ -1,0 +1,1 @@
+package cn.hgy.ai.domain.auth.adapter.repository;

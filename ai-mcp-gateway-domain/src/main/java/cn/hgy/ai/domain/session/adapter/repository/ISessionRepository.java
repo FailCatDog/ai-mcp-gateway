@@ -1,8 +1,8 @@
 package cn.hgy.ai.domain.session.adapter.repository;
 
 import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayConfigVO;
-import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayProtocolConfigVO;
-import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayToolConfigVO;
+import cn.hgy.ai.domain.session.model.valobj.gateway.McpToolProtocolConfigVO;
+import cn.hgy.ai.domain.session.model.valobj.gateway.McpToolConfigVO;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
 public interface ISessionRepository {
     McpGatewayConfigVO queryMcpGatewayConfigByGatewayId(String gatewayId);
 
-    List<McpGatewayToolConfigVO> queryMcpGatewayToolConfigListByGatewayId(String gatewayId);
+    List<McpToolConfigVO> queryMcpGatewayToolConfigListByGatewayId(String gatewayId);
 
-    McpGatewayProtocolConfigVO queryMcpGatewayProtocolConfig(String gatewayId);
+    McpToolProtocolConfigVO queryMcpGatewayProtocolConfig(String gatewayId, String toolName);
 }

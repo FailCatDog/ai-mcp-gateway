@@ -1,6 +1,8 @@
 package cn.hgy.ai.domain.session.adapter.port;
 
-import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayProtocolConfigVO;
+import cn.hgy.ai.domain.session.model.valobj.gateway.McpToolProtocolConfigVO;
+
+import java.io.IOException;
 
 /**
  * @Author: 黄光宇
@@ -9,5 +11,5 @@ import cn.hgy.ai.domain.session.model.valobj.gateway.McpGatewayProtocolConfigVO;
  */
 public interface ISessionPort {
 
-    Object tollCall(McpGatewayProtocolConfigVO.HTTPConfig httpConfig, Object params) throws Exception;
+    Object toolCall(McpToolProtocolConfigVO.HTTPConfig httpConfig, Object params) throws IOException;
 }
