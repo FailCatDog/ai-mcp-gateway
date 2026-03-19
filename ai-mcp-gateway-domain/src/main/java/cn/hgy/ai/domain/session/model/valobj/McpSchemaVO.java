@@ -38,8 +38,7 @@ public final class McpSchemaVO {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static JSONRPCMessage deserializeJsonRpcMessage(String jsonText)
-            throws IOException {
+    public static JSONRPCMessage deserializeJsonRpcMessage(String jsonText) throws IOException {
 
         log.debug("Received JSON message: {}", jsonText);
 

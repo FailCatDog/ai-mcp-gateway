@@ -25,6 +25,11 @@ public class McpProtocolMappingPO {
      * 所属网关ID
      */
     private String gatewayId;
+
+    /**
+     * 协议ID
+     */
+    private Long protocolId;
     /**
      * 所属工具ID
      */

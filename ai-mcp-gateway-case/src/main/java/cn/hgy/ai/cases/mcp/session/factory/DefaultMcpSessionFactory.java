@@ -30,6 +30,9 @@ public class DefaultMcpSessionFactory {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class DynamicContext extends cn.bugstack.wrench.design.framework.tree.DynamicContext {
+
+        private String apiKey;
+
         private SessionConfigVO sessionConfigVO;
     }
 }

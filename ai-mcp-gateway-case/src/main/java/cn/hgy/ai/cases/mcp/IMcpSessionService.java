@@ -10,5 +10,5 @@ import reactor.core.publisher.Flux;
  */
 public interface IMcpSessionService {
 
-    Flux<ServerSentEvent<String>> createMcpSession(String gatewayId) throws Exception;
+    Flux<ServerSentEvent<String>> createMcpSession(String gatewayId, String apiKey) throws Exception;
 }

@@ -1,6 +1,7 @@
 package cn.hgy.ai.trigger.http;
 
 import cn.hgy.ai.api.IMcpGatewayService;
+import cn.hgy.ai.api.response.Response;
 import cn.hgy.ai.cases.mcp.IMcpMessageService;
 import cn.hgy.ai.cases.mcp.IMcpSessionService;
 import cn.hgy.ai.domain.session.model.entity.HandleMessageCommandEntity;
@@ -10,6 +11,7 @@ import cn.hgy.ai.domain.session.service.ISessionManagementService;
 import cn.hgy.ai.domain.session.service.ISessionMessageService;
 import cn.hgy.ai.types.enums.ResponseCode;
 import cn.hgy.ai.types.exception.AppException;
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,8 @@ import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.UUID;
 
 
 /**
@@ -39,7 +43,8 @@ public class McpGatewayController implements IMcpGatewayService {
 
     @GetMapping(value = "{gatewayId}/mcp/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Override
-    public Flux<ServerSentEvent<String>> establishSSEConnection(@PathVariable("gatewayId") String gatewayId) throws Exception {
+    public Flux<ServerSentEvent<String>> handleSSEConnection(@PathVariable("gatewayId") String gatewayId,
+                                                             @RequestParam("api_key") String apiKey) throws Exception {
         try {
             log.info("建立 MCP 连接 {}", gatewayId);
 
@@ -49,9 +54,19 @@ public class McpGatewayController implements IMcpGatewayService {
             }
 
 
-            return mcpSessionService.createMcpSession(gatewayId);
+            return mcpSessionService.createMcpSession(gatewayId, apiKey);
+        } catch (AppException e) {
+            log.error("建立 MCP 连接拒绝 {}", gatewayId, e);
+            return Flux.just(ServerSentEvent.<String>builder()
+                            .id(UUID.randomUUID().toString())
+                            .event("error")
+                            .data(JSON.toJSONString(Response.<String>builder()
+                                    .code(e.getCode())
+                                    .info(e.getInfo())
+                                    .build()))
+                    .build());
         } catch (Exception e) {
-            log.info("建立 MCP 连接失败 {}", gatewayId);
+            log.error("建立 MCP 连接失败 {}", gatewayId);
             throw e;
         }
     }
@@ -81,6 +96,7 @@ public class McpGatewayController implements IMcpGatewayService {
     @PostMapping(value = "{gatewayId}/mcp/sse", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Void>> handleMessage(@PathVariable("gatewayId") String gatewayId,
                                                     @RequestParam("sessionId") String sessionId,
+                                                    @RequestParam("api_key") String apiKey,
                                                     @RequestBody String messageBody) {
         try {
             log.info("处理 MCP SSE 消息，gatewayId:{} sessionId:{} messageBody:{}", gatewayId, sessionId, messageBody);
@@ -89,7 +105,7 @@ public class McpGatewayController implements IMcpGatewayService {
                 throw new AppException(ResponseCode.ILLEGAL_PARAMETER.getCode(), ResponseCode.ILLEGAL_PARAMETER.getInfo());
             }
 
-            HandleMessageCommandEntity commandEntity = new HandleMessageCommandEntity(gatewayId, sessionId, messageBody);
+            HandleMessageCommandEntity commandEntity = new HandleMessageCommandEntity(gatewayId, sessionId, apiKey, messageBody);
             ResponseEntity<Void> responseEntity = mcpMessageService.handleMessage(commandEntity);
 
             return Mono.just(responseEntity);

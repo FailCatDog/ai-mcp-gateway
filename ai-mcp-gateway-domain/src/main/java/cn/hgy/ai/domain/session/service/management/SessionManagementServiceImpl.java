@@ -3,6 +3,7 @@ package cn.hgy.ai.domain.session.service.management;
 import cn.hgy.ai.domain.session.model.valobj.SessionConfigVO;
 import cn.hgy.ai.domain.session.service.ISessionManagementService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Sinks;
@@ -36,13 +37,18 @@ public class SessionManagementServiceImpl implements ISessionManagementService {
     }
 
     @Override
-    public SessionConfigVO createSession(String gatewayId) {
+    public SessionConfigVO createSession(String gatewayId, String apiKey) {
 
         String sessionId = UUID.randomUUID().toString();
 
         Sinks.Many<ServerSentEvent<String>> sink = Sinks.many().multicast().onBackpressureBuffer();
 
+
+        // 发送端点消息 - 告知客户第二次请求地址
         String messageEndpoint = "/api-gateway/" + gatewayId +"/mcp/sse?sessionId=" + sessionId;
+        if (StringUtils.isNotBlank(apiKey)) {
+            messageEndpoint += "&apiKey=" + apiKey;
+        }
         sink.tryEmitNext(ServerSentEvent.<String>builder()
                 .event("endpoint")
                 .data(messageEndpoint)

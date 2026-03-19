@@ -8,7 +8,7 @@ import cn.hgy.ai.domain.session.model.valobj.SessionConfigVO;
  * @Description: 会话管理服务接口
  */
 public interface ISessionManagementService {
-    SessionConfigVO createSession(String getawayId);
+    SessionConfigVO createSession(String getawayId, String apiKey);
 
     void removeSession(String sessionId);
 

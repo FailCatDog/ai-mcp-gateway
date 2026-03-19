@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
  */
 public interface IMcpGatewayService {
 
-    Flux<ServerSentEvent<String>> establishSSEConnection(String gatewayId) throws Exception;
+    Flux<ServerSentEvent<String>> handleSSEConnection(String gatewayId, String apiKey) throws Exception;
 
-    Mono<ResponseEntity<Void>> handleMessage(String getawayId, String sessionId, String messageBody);
+    Mono<ResponseEntity<Void>> handleMessage(String getawayId, String apiKey, String sessionId, String messageBody);
 }
