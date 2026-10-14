@@ -21,7 +21,7 @@ import java.util.Map;
 * @Description: 执行指定的工具调用
 */
 @Slf4j
-@Service("toolsCalHandler")
+@Service("toolsCallHandler")
 @RequiredArgsConstructor
 public class ToolsCallHandler implements IRequestHandler {
 
@@ -46,7 +46,12 @@ public class ToolsCallHandler implements IRequestHandler {
             }
 
             // 2. 调用接口
-            Object result = port.toolCall(mcpToolProtocolConfigVO.getHttpConfig(), argumentsObj);
+            Object result;
+            if ("ai_model".equals(mcpToolProtocolConfigVO.getProtocolType())) {
+                result = port.aiModelCall(mcpToolProtocolConfigVO.getAiModelConfig(), argumentsObj);
+            } else {
+                result = port.toolCall(mcpToolProtocolConfigVO.getHttpConfig(), argumentsObj);
+            }
 
             return new McpSchemaVO.JSONRPCResponse(McpSchemaVO.JSONRPC_VERSION, message.id(), Map.of(
                     "content", new Object[]{

@@ -22,6 +22,7 @@ public class ParametersAnalysisStrategy extends AbstractProtocolAnalysisStrategy
 
     @Override
     public void doAnalysis(JSONObject operation, JSONObject definitions, List<HTTPProtocolVO.ProtocolMapping> mappings) {
+        // 1. 提取 parameters 数组，仅处理 in=query 和 in=path 的参数
         JSONArray parameters = operation.getJSONArray("parameters");
         if (parameters == null) return;
 
@@ -39,6 +40,7 @@ public class ParametersAnalysisStrategy extends AbstractProtocolAnalysisStrategy
             String ref = schema.getString("$ref");
 
             if (ref != null) {
+                // 2. 参数类型为 $ref 引用对象：从 definitions 解析嵌套 Schema，递归构建 ProtocolMapping
                 String refName = ref.substring(ref.lastIndexOf('/') + 1);
                 JSONObject reqSchema = definitions.getJSONObject(refName);
 
@@ -58,8 +60,10 @@ public class ParametersAnalysisStrategy extends AbstractProtocolAnalysisStrategy
 
                 mappings.add(rootMapping);
 
+                // 递归解析引用对象的 properties
                 parseProperties(name, reqSchema.getJSONObject("properties"), reqSchema.getJSONArray("required"), definitions, mappings);
             } else {
+                // 3. 参数为基础类型（string/integer 等）：直接构建扁平 ProtocolMapping
                 HTTPProtocolVO.ProtocolMapping mapping = HTTPProtocolVO.ProtocolMapping.builder()
                         .mappingType("request")
                         .parentPath(null)

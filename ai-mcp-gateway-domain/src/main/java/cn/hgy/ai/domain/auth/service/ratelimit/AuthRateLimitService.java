@@ -4,7 +4,6 @@ import cn.hgy.ai.domain.auth.adapter.repository.IAuthRepository;
 import cn.hgy.ai.domain.auth.model.entity.LicenseCommandEntity;
 import cn.hgy.ai.domain.auth.model.entity.RateLimitCommandEntity;
 import cn.hgy.ai.domain.auth.model.valobj.McpGatewayAuthVO;
-import cn.hgy.ai.domain.auth.service.IAuthLicenseService;
 import cn.hgy.ai.domain.auth.service.IAuthRateLimitService;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -39,12 +38,13 @@ public class AuthRateLimitService implements IAuthRateLimitService {
         try {
             // 1. 获取限流组件
             RateLimiter rateLimiter = rateLimiterCache.get(gatewayId + "_" + apiKey, () -> {
+                // 1.1. 从数据库查询该网关+API的限流配置
                 McpGatewayAuthVO mcpGatewayAuthVO = repository.queryEffectiveGatewayAuthInfo(new LicenseCommandEntity(gatewayId, apiKey));
                 if (null == mcpGatewayAuthVO || null == mcpGatewayAuthVO.getRateLimit()) {
                     throw new IllegalStateException("未配置限流");
                 }
 
-                // 速率限制（次/小时）转换为（次/秒）
+                // 1.2. 速率限制（次/小时）转换为（次/秒）
                 double permitsPerSecond = (double) mcpGatewayAuthVO.getRateLimit() / 3600;
                 if (permitsPerSecond <= 0) {
                     throw new IllegalArgumentException("限流值不正确");

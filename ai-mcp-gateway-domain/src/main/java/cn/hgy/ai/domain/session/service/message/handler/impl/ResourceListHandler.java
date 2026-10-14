@@ -13,7 +13,7 @@ import java.util.Map;
  * @Description: 返回可用资源列表
  */
 @Slf4j
-@Service("resourceListHandler")
+@Service("resourcesListHandler")
 public class ResourceListHandler implements IRequestHandler {
     @Override
     public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest message) {

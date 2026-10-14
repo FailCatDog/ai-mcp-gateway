@@ -19,6 +19,17 @@
     </modules>
 
     <repositories>
+    <repository>
+            <id>spring-releases</id>
+            <name>Spring Releases</name>
+            <url>https://repo.spring.io/release</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>nexus-aliyun</id>
             <name>nexus-aliyun</name>
@@ -43,10 +54,7 @@
 
     <developers>
         <developer>
-            <name>xiaofuge</name>
-            <email>184172133@qq.com</email>
-            <organization>fuzhengwei</organization>
-            <organizationUrl>https://github.com/fuzhengwei</organizationUrl>
+            <name>orange.huang</name>
         </developer>
     </developers>
 

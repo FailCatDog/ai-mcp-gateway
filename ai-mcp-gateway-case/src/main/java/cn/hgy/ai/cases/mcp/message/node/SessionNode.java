@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service("mcpMessageSessionNode")
 @RequiredArgsConstructor
-public class SessionNode  extends AbstractMcpMessageSupport {
+public class SessionNode extends AbstractMcpMessageSupport {
 
     private final MessageHandlerNode messageHandlerNode;
 

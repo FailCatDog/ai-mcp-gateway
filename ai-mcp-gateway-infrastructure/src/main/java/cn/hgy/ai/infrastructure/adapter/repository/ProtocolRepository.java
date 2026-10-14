@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * 协议仓储服务
  *
- * @author xiaofuge hgy.cn @小傅哥
+ * @author orange.huang
  * 2026/3/13 08:22
  */
 @Slf4j

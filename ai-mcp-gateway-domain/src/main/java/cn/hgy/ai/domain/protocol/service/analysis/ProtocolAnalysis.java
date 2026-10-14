@@ -207,6 +207,7 @@ public class ProtocolAnalysis implements IProtocolAnalysis {
 
         List<HTTPProtocolVO> list = new ArrayList<>();
         try {
+            // 1. 解析 OpenAPI JSON 根节点，提取全局 baseUrl、paths 路径集合、components/schemas 定义
             JSONObject root = JSON.parseObject(commandEntity.getOpenApiJson());
             String baseUrl = root.getJSONArray("servers").getJSONObject(0).getString("url");
             JSONObject paths = root.getJSONObject("paths");
@@ -216,12 +217,15 @@ public class ProtocolAnalysis implements IProtocolAnalysis {
             if (null == endpoints || endpoints.isEmpty()) return list;
 
             for (String endpoint : endpoints) {
+                // 2. 按 endpoint 路径定位 OpenAPI paths 节点
                 JSONObject pathItem = paths.getJSONObject(endpoint);
                 if (pathItem == null) continue;
 
+                // 3. 探测该路径的 HTTP 方法（post/get/put/delete），优先取 post
                 String method = detectMethod(pathItem);
                 JSONObject operation = pathItem.getJSONObject(method);
 
+                // 4. 构建 HTTPProtocolVO 基础信息（url、method、headers、timeout）
                 HTTPProtocolVO vo = new HTTPProtocolVO();
                 vo.setHttpUrl(baseUrl + endpoint);
                 vo.setHttpMethod(method);
@@ -232,7 +236,9 @@ public class ProtocolAnalysis implements IProtocolAnalysis {
 
                 List<HTTPProtocolVO.ProtocolMapping> mappings = new ArrayList<>();
 
-                // 枚举策略动作处理
+                // 5. 根据 operation 结构判断解析策略：
+                //    - requestBody 类型（POST body）-> RequestBodyAnalysisStrategy
+                //    - parameters 类型（query/path）-> ParametersAnalysisStrategy
                 AnalysisTypeEnum.SwaggerAnalysisAction analysisAction = AnalysisTypeEnum.SwaggerAnalysisAction.get(operation);
                 IProtocolAnalysisStrategy strategy = protocolAnalysisStrategyMap.get(analysisAction.getCode());
                 strategy.doAnalysis(operation, schemas, mappings);

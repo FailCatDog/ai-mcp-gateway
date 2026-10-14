@@ -2,6 +2,7 @@ package cn.hgy.ai.infrastructure.adapter.port;
 
 import cn.hgy.ai.domain.session.adapter.port.ISessionPort;
 import cn.hgy.ai.domain.session.model.valobj.gateway.McpToolProtocolConfigVO;
+import cn.hgy.ai.infrastructure.adapter.ai.AiModelAdapterFactory;
 import cn.hgy.ai.infrastructure.gateway.GenericHttpGateway;
 import cn.hgy.ai.types.enums.ResponseCode;
 import cn.hgy.ai.types.exception.AppException;
@@ -29,8 +30,8 @@ import java.util.regex.Pattern;
 public class SessionPort implements ISessionPort {
 
     private final GenericHttpGateway genericHttpGateway;
-
     private final ObjectMapper objectMapper;
+    private final AiModelAdapterFactory aiModelAdapterFactory;
 
     @Override
     public Object toolCall(McpToolProtocolConfigVO.HTTPConfig httpConfig, Object params) throws IOException {
@@ -86,5 +87,10 @@ public class SessionPort implements ISessionPort {
         }
 
         throw new AppException(ResponseCode.METHOD_NOT_FOUND.getCode(), ResponseCode.METHOD_NOT_FOUND.getInfo());
+    }
+
+    @Override
+    public Object aiModelCall(McpToolProtocolConfigVO.AIModelConfig aiModelConfig, Object params) {
+        return aiModelAdapterFactory.call(aiModelConfig, params);
     }
 }

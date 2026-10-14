@@ -13,6 +13,24 @@ import java.util.List;
  */
 public abstract class AbstractProtocolAnalysisStrategy implements IProtocolAnalysisStrategy {
 
+    /**
+     * 递归解析 OpenAPI Schema 的 properties，构建平铺的 ProtocolMapping 列表
+     *
+     * 将 OpenAPI 嵌套 Schema（支持 $ref 引用）还原为带 parentPath 的平铺映射结构，
+     * 用于后续在 tools/list 中重建 JSON Schema 树，以及在 tools/call 中进行参数映射。
+     *
+     * 示例：Schema { city: string, company: { name: string } }
+     * 还原为：
+     *   { parentPath: rootName,          fieldName: city,    mcpPath: rootName.city }
+     *   { parentPath: rootName,          fieldName: company, mcpPath: rootName.company }
+     *   { parentPath: rootName.company,  fieldName: name,    mcpPath: rootName.company.name }
+     *
+     * @param parentMcpPath 父节点的 MCP 路径（用于构建 a.b.c 关系链）
+     * @param properties    当前 Schema 的 properties 节点
+     * @param requiredList  当前 Schema 的 required 数组（用于标记必填字段）
+     * @param definitions   components/schemas 全局定义，用于解析 $ref 引用
+     * @param mappings      结果收集列表
+     */
     protected void parseProperties(String parentMcpPath, JSONObject properties, JSONArray requiredList, JSONObject definitions, List<HTTPProtocolVO.ProtocolMapping> mappings) {
         if (properties == null) return;
 

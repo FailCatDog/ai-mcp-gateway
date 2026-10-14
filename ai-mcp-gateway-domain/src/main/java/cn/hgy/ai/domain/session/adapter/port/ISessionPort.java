@@ -12,4 +12,6 @@ import java.io.IOException;
 public interface ISessionPort {
 
     Object toolCall(McpToolProtocolConfigVO.HTTPConfig httpConfig, Object params) throws IOException;
+
+    Object aiModelCall(McpToolProtocolConfigVO.AIModelConfig aiModelConfig, Object params);
 }

@@ -36,16 +36,24 @@ public class SessionManagementServiceImpl implements ISessionManagementService {
         cleanupScheduler.scheduleAtFixedRate(this::cleanupExpiredSessions, 5, 5, TimeUnit.MINUTES);
     }
 
+    /**
+     * 创建新的 MCP 会话
+     * 
+     * 1. 生成唯一的 sessionId
+     * 2. 创建 Reactor Sink 用于异步推送 SSE 事件
+     * 3. 发送 endpoint 事件，告知客户端后续消息发送地址
+     * 4. 将会话存储到内存，启动自动过期清理机制
+     * 
+     * @param gatewayId 网关ID
+     * @param apiKey API密钥
+     * @return 会话配置对象，包含 sessionId 和 SSE 事件流
+     */
     @Override
     public SessionConfigVO createSession(String gatewayId, String apiKey) {
-
         String sessionId = UUID.randomUUID().toString();
-
         Sinks.Many<ServerSentEvent<String>> sink = Sinks.many().multicast().onBackpressureBuffer();
 
-
-        // 发送端点消息 - 告知客户第二次请求地址
-        String messageEndpoint = "/api-gateway/" + gatewayId +"/mcp/sse?sessionId=" + sessionId;
+        String messageEndpoint = "/api-gateway/" + gatewayId + "/mcp/sse?sessionId=" + sessionId;
         if (StringUtils.isNotBlank(apiKey)) {
             messageEndpoint += "&apiKey=" + apiKey;
         }
@@ -55,11 +63,9 @@ public class SessionManagementServiceImpl implements ISessionManagementService {
                 .build());
 
         SessionConfigVO sessionConfigVO = new SessionConfigVO(sessionId, sink);
-
         activeSessions.put(sessionId, sessionConfigVO);
 
         log.info("创建会话 gatewayId:{}", gatewayId);
-
         return sessionConfigVO;
     }
 
@@ -77,6 +83,16 @@ public class SessionManagementServiceImpl implements ISessionManagementService {
         }
     }
 
+    /**
+     * 获取活跃会话
+     * 
+     * 1. 检查会话是否存在且处于活跃状态
+     * 2. 更新最后访问时间（用于过期判定）
+     * 3. 返回会话对象供消息处理使用
+     * 
+     * @param sessionId 会话ID
+     * @return 活跃会话对象，若不存在或已过期则返回 null
+     */
     @Override
     public SessionConfigVO getSession(String sessionId) {
         if (null == sessionId || sessionId.isEmpty()) return null;
@@ -91,6 +107,14 @@ public class SessionManagementServiceImpl implements ISessionManagementService {
         return null;
     }
 
+    /**
+     * 定期清理过期会话
+     * 
+     * 由 ScheduledExecutorService 每 5 分钟执行一次
+     * 清理条件：会话已标记为非活跃 或 超过 30 分钟未访问
+     * 
+     * @see #SESSION_TIMEOUT_MINUTES 会话超时时间（分钟）
+     */
     @Override
     public void cleanupExpiredSessions() {
         int cleanedCount = 0;

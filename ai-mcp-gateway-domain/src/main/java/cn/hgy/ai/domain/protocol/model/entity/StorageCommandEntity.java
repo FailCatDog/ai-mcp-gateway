@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * 存储协议实体
  *
- * @author xiaofuge bugstack.cn @小傅哥
+ * @author orange.huang
  * 2026/3/13 07:38
  */
 @Data

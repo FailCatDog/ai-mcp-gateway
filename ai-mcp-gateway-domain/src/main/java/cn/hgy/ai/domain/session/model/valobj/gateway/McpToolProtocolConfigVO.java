@@ -16,14 +16,37 @@ import java.util.List;
 public class McpToolProtocolConfigVO {
 
     /**
+     * 协议类型：http / ai_model
+     */
+    private String protocolType;
+
+    /**
      * 请求协议配置
      */
     private HTTPConfig httpConfig;
 
     /**
+     * AI 模型协议配置
+     */
+    private AIModelConfig aiModelConfig;
+
+    /**
      * 请求协议映射
+     * 注：AI 模型工具注册时，只需提供一条 prompt 字段的 mapping，即可复用现有 schema 构建流程
      */
     private List<ProtocolMapping> requestProtocolMappings;
+
+    @Data
+    public static class AIModelConfig {
+        /**
+         * 模型类型：openai / ollama
+         */
+        private String modelType;
+        /**
+         * 系统提示词，告知模型角色定位
+         */
+        private String prompt;
+    }
 
     @Data
     public static class HTTPConfig {

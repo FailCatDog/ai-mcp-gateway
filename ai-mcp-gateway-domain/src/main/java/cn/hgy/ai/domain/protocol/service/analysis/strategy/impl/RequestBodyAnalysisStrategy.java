@@ -21,6 +21,7 @@ public class RequestBodyAnalysisStrategy extends AbstractProtocolAnalysisStrateg
 
     @Override
     public void doAnalysis(JSONObject operation, JSONObject definitions, List<HTTPProtocolVO.ProtocolMapping> mappings) {
+        // 1. 提取 requestBody -> content -> application/json -> schema
         JSONObject requestBody = operation.getJSONObject("requestBody");
         if (requestBody == null) return;
 
@@ -32,10 +33,14 @@ public class RequestBodyAnalysisStrategy extends AbstractProtocolAnalysisStrateg
         String ref = schema.getString("$ref");
 
         if (ref != null) {
+            // 2. 解析 $ref 引用，从 components/schemas 中找到对应的 Schema 定义
             String refName = ref.substring(ref.lastIndexOf('/') + 1);
             JSONObject reqSchema = definitions.getJSONObject(refName);
+
+            // 3. 将 Schema 名称转为 lowerCamelCase 作为 MCP 根节点名（如 CreateOrderRequest -> createOrderRequest）
             String rootName = toLowerCamel(refName);
 
+            // 4. 构建根节点 ProtocolMapping（parentPath 为 null 表示顶层属性）
             HTTPProtocolVO.ProtocolMapping rootMapping = HTTPProtocolVO.ProtocolMapping.builder()
                     .mappingType("request")
                     .parentPath(null)
@@ -49,6 +54,7 @@ public class RequestBodyAnalysisStrategy extends AbstractProtocolAnalysisStrateg
 
             mappings.add(rootMapping);
 
+            // 5. 递归解析 Schema 的 properties，构建完整的嵌套 ProtocolMapping 列表
             parseProperties(rootName, reqSchema.getJSONObject("properties"), reqSchema.getJSONArray("required"), definitions, mappings);
         }
     }

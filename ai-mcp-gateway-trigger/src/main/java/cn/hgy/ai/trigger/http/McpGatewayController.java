@@ -5,14 +5,9 @@ import cn.hgy.ai.api.response.Response;
 import cn.hgy.ai.cases.mcp.IMcpMessageService;
 import cn.hgy.ai.cases.mcp.IMcpSessionService;
 import cn.hgy.ai.domain.session.model.entity.HandleMessageCommandEntity;
-import cn.hgy.ai.domain.session.model.valobj.McpSchemaVO;
-import cn.hgy.ai.domain.session.model.valobj.SessionConfigVO;
-import cn.hgy.ai.domain.session.service.ISessionManagementService;
-import cn.hgy.ai.domain.session.service.ISessionMessageService;
 import cn.hgy.ai.types.enums.ResponseCode;
 import cn.hgy.ai.types.exception.AppException;
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -41,10 +36,23 @@ public class McpGatewayController implements IMcpGatewayService {
     private final IMcpSessionService mcpSessionService;
     private final IMcpMessageService mcpMessageService;
 
+    /**
+     * 建立 MCP SSE 长连接
+     * 
+     * 流程：
+     * 1. 验证网关ID合法性
+     * 2. 创建会话并初始化 SSE 流
+     * 3. 返回 endpoint 事件，告知客户端后续消息发送地址
+     * 
+     * @param gatewayId 网关唯一标识
+     * @param apiKey API密钥，用于后续请求认证
+     * @return SSE 事件流，首个事件为 endpoint（包含 sessionId）
+     * @throws Exception 网关不存在或其他系统异常
+     */
     @GetMapping(value = "{gatewayId}/mcp/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Override
     public Flux<ServerSentEvent<String>> handleSSEConnection(@PathVariable("gatewayId") String gatewayId,
-                                                             @RequestParam("api_key") String apiKey) throws Exception {
+                                                             @RequestParam("apiKey") String apiKey) throws Exception {
         try {
             log.info("建立 MCP 连接 {}", gatewayId);
 
@@ -52,7 +60,6 @@ public class McpGatewayController implements IMcpGatewayService {
                 log.info("网关ID为空");
                 throw new AppException(ResponseCode.ILLEGAL_PARAMETER.getCode(), ResponseCode.ILLEGAL_PARAMETER.getInfo());
             }
-
 
             return mcpSessionService.createMcpSession(gatewayId, apiKey);
         } catch (AppException e) {
@@ -72,31 +79,24 @@ public class McpGatewayController implements IMcpGatewayService {
     }
 
     /**
-     * 处理 sse 消息，响应会话
-     *
-     * @param gatewayId   网关ID
-     * @param sessionId   会话ID
-     * @param messageBody 请求消息
-     * @return 响应结果
-     * <br/>
-     * {
-     * "jsonrpc": "2.0",
-     * "method": "initialize",
-     * "id": "95835f74-0",
-     * "params": {
-     * "protocolVersion": "2024-11-05",
-     * "capabilities": {},
-     * "clientInfo": {
-     * "name": "Java SDK MCP Client",
-     * "version": "1.0.0"
-     * }
-     * }
-     * }
+     * 处理 MCP JSON-RPC 消息
+     * 
+     * 流程：
+     * 1. 验证会话合法性（sessionId 必须存在且有效）
+     * 2. 解析 JSON-RPC 请求（支持 initialize、tools/list、tools/call 等方法）
+     * 3. 路由到对应的处理器执行业务逻辑
+     * 4. 将响应通过 SSE 流推送回客户端
+     * 
+     * @param gatewayId 网关唯一标识
+     * @param sessionId 会话ID（由 handleSSEConnection 返回）
+     * @param apiKey API密钥，用于速率限制等认证
+     * @param messageBody JSON-RPC 2.0 格式的请求消息
+     * @return HTTP 202 Accepted（异步处理，响应通过 SSE 返回）
      */
     @PostMapping(value = "{gatewayId}/mcp/sse", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Void>> handleMessage(@PathVariable("gatewayId") String gatewayId,
                                                     @RequestParam("sessionId") String sessionId,
-                                                    @RequestParam("api_key") String apiKey,
+                                                    @RequestParam("apiKey") String apiKey,
                                                     @RequestBody String messageBody) {
         try {
             log.info("处理 MCP SSE 消息，gatewayId:{} sessionId:{} messageBody:{}", gatewayId, sessionId, messageBody);
@@ -105,7 +105,7 @@ public class McpGatewayController implements IMcpGatewayService {
                 throw new AppException(ResponseCode.ILLEGAL_PARAMETER.getCode(), ResponseCode.ILLEGAL_PARAMETER.getInfo());
             }
 
-            HandleMessageCommandEntity commandEntity = new HandleMessageCommandEntity(gatewayId, sessionId, apiKey, messageBody);
+            HandleMessageCommandEntity commandEntity = new HandleMessageCommandEntity(gatewayId, apiKey, sessionId, messageBody);
             ResponseEntity<Void> responseEntity = mcpMessageService.handleMessage(commandEntity);
 
             return Mono.just(responseEntity);
